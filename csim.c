@@ -108,29 +108,26 @@ void deal(FILE *file, int s, int E, int b) {
       }
     } else {
       ret_val = load(count, set, E, tag);
+      hit_count++;
       if (verbose) {
-        int word_2 = load(count, set, E, tag);
-        printf("%s %s %s\n", str_buf, msg[ret_val], msg[word_2]);
-      } else {
-        load(count, set, E, tag);
-      }   
+        printf("%s %s hit\n", str_buf, msg[ret_val]);
+      } 
     }
   }
 }
 
 int load(int *count, int set, int E, int tag) {
   int max_count = set;  // LRU,最近最少使用
-
   for (int i = 0; i < E; ++i) {
     count[set + i]++;
-    if (count[max_count] < count[set + i]) {  // 找到LRU目标
-      max_count = set + i;
-    }
+    if (count[max_count] <= count[set + i]) {  // 找到LRU目标,要有等于号
+      max_count = set + i;                     // 不然实验中有一个实例会有问题
+    }                                          // 但是实际上不带等号表现会更好
   }
   for (int i = 0; i < E; ++i) {
     if ((buffer[set][i] & (~(1L << 63))) == tag) {  // 命中     
+      count[set + i] = 0;
       if (buffer[set][i] & (1L << 63)) {
-        count[set + i] = 0;
         hit_count++;
         return 1;
       } else {
